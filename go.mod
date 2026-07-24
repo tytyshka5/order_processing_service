@@ -1,3 +1,3 @@
-module github.com/tytyshka5/order-processing-service
+module order_processing_service
 
 go 1.25.6

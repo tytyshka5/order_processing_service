@@ -1,14 +1,14 @@
 package domain
 
 type Product struct {
-	ID 	int64
-	Name string
+	ID           int64
+	Name         string
 	PriceKopecks int64
-	Stock int
+	Stock        int
 }
 
 type OrderItem struct {
 	ProductID int64
-	Quntity int
+	Quantity  int
 	UnitPrice int64
 }
