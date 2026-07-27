@@ -1,48 +1,57 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+
 	"order_processing_service/internal/domain"
-	"time"
+	"order_processing_service/internal/repository/memory"
 )
 
 func main() {
 
-	computer := domain.Product{
-		ID:           1,
-		Name:         "Omni",
-		PriceKopecks: 19999,
-		Stock:        13,
-	}
+	repo := memory.NewProductRepository()
 
-	mouse := domain.Product{
-		ID:           2,
-		Name:         "Logitech",
+	product1 := repo.Create(domain.Product{
+		Name:         "Телефон",
+		PriceKopecks: 199999,
+		Stock:        13,
+	})
+	fmt.Printf("created product: id=%d name=%s\n", product1.ID, product1.Name)
+	product2 := repo.Create(domain.Product{
+		Name:         "Ноутбук",
 		PriceKopecks: 1999,
 		Stock:        10,
+	})
+	fmt.Printf("created product: id=%d name=%s\n", product2.ID, product2.Name)
+	var id int64 = 1
+	product3, err := repo.GetByID(id)
+	if err != nil {
+		fmt.Printf("Ошибка: %s\n", err.Error())
+	} else {
+		fmt.Printf("found product: id=%d name=%s\n", product3.ID, product3.Name)
 	}
-
-	mouseItem := domain.OrderItem{
-		ProductID: mouse.ID,
-		Quantity:  3,
-		UnitPrice: mouse.PriceKopecks,
+	id = 999
+	_, err = repo.GetByID(id)
+	if err != nil {
+		if errors.Is(err, domain.ErrProductNotFound) {
+			fmt.Printf("product %d not found\n", id)
+		}
 	}
-
-	computerItem := domain.OrderItem{
-		ProductID: computer.ID,
-		Quantity:  2,
-		UnitPrice: computer.PriceKopecks,
+	items := repo.List()
+	fmt.Println("Products:")
+	for _, v := range items {
+		fmt.Printf("%s, \n", v.Name)
 	}
+	changedID := items[0].ID
+	items[0].Name = "Asus"
 
-	Order := domain.Order{
-		ID:         1,
-		CustomerID: 1,
-		Items:      []domain.OrderItem{computerItem, mouseItem},
-		Status:     domain.StatusNew,
-		CreatedAt:  time.Now(),
+	storedProduct, err := repo.GetByID(changedID)
+	if err != nil {
+		if errors.Is(err, domain.ErrProductNotFound) {
+			fmt.Printf("product %d not found\n", id)
+		}
+	} else {
+		fmt.Printf("found product: id=%d name=%s\n", storedProduct.ID, storedProduct.Name)
 	}
-
-	orderSum := Order.Total()
-
-	fmt.Printf("order=%d status=%s items=%d total=%d\n", Order.ID, Order.Status, len(Order.Items), orderSum)
 }
